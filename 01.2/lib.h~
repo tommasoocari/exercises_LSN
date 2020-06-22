@@ -1,0 +1,10 @@
+#ifndef__Lib__
+#define __lib__
+
+#include <vector>
+
+using namespace std;
+
+vector<vector<double>> do_sum(vector<int> vect_N, vector<double> random)
+
+#endif

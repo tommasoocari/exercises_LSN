@@ -1,0 +1,5 @@
+100
+10000
+
+    ReadInput >> N // number of blocks
+    ReadInput >> M // number of steps in each block

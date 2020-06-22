@@ -1,0 +1,10 @@
+#ifndef __Error__
+#define __Error__
+
+#include <vector>
+#include <string>
+
+void do_blocking_method(std::string file_in, std::string file_out);
+
+
+#endif

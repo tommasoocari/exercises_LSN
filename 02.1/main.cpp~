@@ -1,0 +1,71 @@
+#include <iostream>
+#include "../Parallel_Random_Number_Generator/random.h"
+#include "error.h"
+#include <vector>
+#include <cmath>
+#include <fstream>
+#include <numeric>
+
+using namespace std;
+
+double f1(double x) {return M_PI/2* cos( M_PI * x / 2 );}
+double f2(double x) {return M_PI/4 * cos( M_PI * x / 2) / (1-x); }
+
+int main(){
+
+  Random rnd;
+  int seed[4];
+  seed [0] = 3;
+  seed [1] = 5;
+  seed [2] = 33;
+  seed [3] = 345;
+  int p1 = 5, p2 = 4;
+  rnd.SetRandom(seed,p1,p2);
+
+  ofstream file_out;
+  int M = 10000; // montecarlo steps in each block
+  int N = 100; // number of blocks
+  int L = N * M;  
+
+  
+  vector<double> r;
+  vector<double> f;
+  for(int i=0; i<L; i++){
+    r.push_back(rnd.Rannyu());
+    f.push_back(f1(r[i]));
+  }
+
+  
+  file_out.open("02.1_montecarlo_ud.csv");
+  
+  for(int i=0; i<L; i=i+M){
+    file_out << accumulate(f.begin()+i,f.begin()+i+M,0.0) / M << endl;
+   }
+  
+  file_out.close();
+  
+  do_blocking_method("02.1_montecarlo_ud.csv","02.1_results_ud.csv");
+
+
+  // inverse cumulative method
+  
+  for(int i=0; i<r.size(); i++){
+    r[i] = 1+ sqrt(1-r[i]);
+    f[i] = f2(r[i]);
+  }
+
+  file_out.open("02.1_montecarlo_is.csv");
+  
+  for(int i=0; i<L; i=i+M){
+    file_out << accumulate(f.begin()+i,f.begin()+i+M,0.0) / M << endl;
+   }
+  
+  file_out.close();
+  
+  do_blocking_method("02.1_montecarlo_is.csv","02.1_results_is.csv");
+
+  rnd.SaveSeed();
+  
+  return 0;
+  
+} 

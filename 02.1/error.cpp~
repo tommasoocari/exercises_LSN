@@ -1,0 +1,58 @@
+#include "error.h"
+#include <vector>
+#include <string>
+#include <fstream>
+#include <iostream>
+
+using namespace std;
+
+void do_blocking_method(string filename_in, string filename_out){
+  ifstream file_in;
+  ofstream file_out;
+  double n;
+  vector<double> vec;
+  vector<double> ve2;
+  double prog_sum;
+  double prog_su2;
+
+  file_in.open(filename_in);
+
+  int i=0;
+  
+  while(!file_in.eof()){
+    file_in >> n;
+    vec.push_back(n);
+    ve2.push_back(n*n);
+  }
+
+  
+  file_in.close();
+  
+  file_out.open(filename_out);
+
+  for(int i=1; i<vec.size(); i++){
+    prog_sum=0;
+    prog_su2=0;
+    for(int j=0; j<i+1; j++){
+      prog_sum = prog_sum + vec[j];
+      prog_su2 = prog_su2 + vec[j];
+    }
+    prog_sum = prog_sum /(i+1);
+    prog_su2 = prog_su2 /(i+1);
+    file_out << i+1 << "," 
+	     << prog_sum << "," << (prog_su2 - prog_sum*prog_sum) /i
+	     << "," << endl; 
+  }
+
+  file_out.close();
+}
+
+
+
+
+  
+
+  
+  
+    
+  

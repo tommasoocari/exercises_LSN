@@ -1,0 +1,15 @@
+CC = g++
+CFLAGS = -Wall -O3 --std=c++11
+PRNG = ../Parallel_Random_Number_Generator/
+
+main.exe : main.o $(PRNG)random.o error.o
+	$(CC) $(PRNG)random.o main.o error.o -o main.exe
+main.o : main.cpp
+	$(CC) -c main.cpp -o main.o $(CFLAGS)
+random.o : $(PRNG)random.cpp $(PRNG)random.h
+	$(CC) -c $(PRNG)random.cpp -o $(PRNG)random.o $(CFLAGS)
+error.o : error.cpp error.h
+	$(CC) -c error.cpp -o error.o $(CFLAGS)
+
+clean :
+	rm *.o main.exe seed.out *.csv

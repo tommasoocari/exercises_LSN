@@ -1,0 +1,7 @@
+100
+100
+100
+
+  ReadInput >> N_blocks;
+  ReadInput >> N_simul; //number of MC steps for each block
+  ReadInput >> L; //number of RW steps

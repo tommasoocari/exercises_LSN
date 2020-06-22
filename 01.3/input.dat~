@@ -1,0 +1,11 @@
+100
+100000
+
+2.0
+2.0
+
+    ReadInput << Nblocks
+    ReadInput << M
+
+    ReadInput << d //side of the simulation space
+    ReadInput << L //length of the stick

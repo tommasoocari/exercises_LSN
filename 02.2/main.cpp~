@@ -1,0 +1,157 @@
+#include <iostream>
+#include "../Parallel_Random_Number_Generator/random.h"
+#include "error.h"
+#include <vector>
+#include <cmath>
+#include <fstream>
+
+using namespace std;
+
+vector<int> discrete_step(int n);
+
+int main(){
+
+  Random rnd;
+  int seed[4];
+  seed [0] = 3;
+  seed [1] = 5;
+  seed [2] = 33;
+  seed [3] = 345;
+  int p1 = 5, p2 = 4;
+  rnd.SetRandom(seed,p1,p2);
+
+  int N_blocks = 100;
+  int N_simul = 100;
+  int N_perstep = N_blocks*N_simul;
+  int L = 100;
+  int M = N_simul * N_blocks * L;
+
+  vector<int> r;
+  for(int i=0; i<M; i++) r.push_back(rnd.Rannyu(0,6));
+
+  vector<vector<int>> positions;
+  for (int i=0; i<N_perstep; i++) positions.push_back({0,0,0});
+
+  vector<int> appo;
+  vector<double> blocks_results(N_blocks,0);
+  
+  double sum=0;
+  int pos=0;
+  int k=0;
+
+  ofstream file_out;
+  file_out.open("02.2_results_discrete.csv");
+  
+
+  for(int step=0; step<L; step++){
+
+    pos = 0;
+
+    for(int block = 0; block<N_blocks; block++){
+
+      sum = 0;
+
+      for(int i=0; i<N_simul; i++){
+	k = i + block * N_simul + step * N_blocks * N_simul;
+	pos = i + block * N_simul;
+	appo = discrete_step(r[k]);
+	for(int d=0; d<3; d++) positions[pos][d] += appo[d];
+	sum += pow(positions[pos][0],2)+pow(positions[pos][1],2)+pow(positions[pos][2],2);
+      }
+
+      blocks_results[block] = sqrt(sum/N_simul);
+
+    }
+
+    file_out << step+1 << ","
+	     << average(blocks_results) << ","
+	     << error(blocks_results) << endl;
+    
+  }
+  
+  file_out.close();
+
+  //continuum RW
+
+  vector<double*> r2;
+  for(int i=0; i<M; i++) r2.push_back(rnd.Uniform_Solid_Angle());
+
+  vector<vector<double>> positions2;
+  for (int i=0; i<N_perstep; i++) positions2.push_back({0.,0.,0.});
+
+  sum=0;
+  pos =0;
+  k=0;
+
+  double * appo2;
+
+  file_out.open("02.2_results_continuum.csv");
+
+  for(int step=0; step<L; step++){
+
+    pos = 0;
+
+    for(int block = 0; block<N_blocks; block++){
+
+      sum = 0;
+
+      for(int i=0; i<N_simul; i++){
+	k = i + block * N_simul + step * N_blocks * N_simul;
+	pos = i + block * N_simul;
+	appo2 = r2[k];
+	for(int d=0; d<3; d++) positions2[pos][d] += appo2[d];
+	sum += pow(positions2[pos][0],2)+pow(positions2[pos][1],2)+pow(positions2[pos][2],2);
+      }
+      
+
+      blocks_results[block] = sqrt(sum/N_simul);
+
+    }
+
+    file_out << step+1 << ","
+	     << average(blocks_results) << ","
+	     << error(blocks_results) << endl;
+  }
+  
+  file_out.close();
+  
+
+  
+  
+
+  
+
+  
+  rnd.SaveSeed();
+  
+  return 0;
+
+}
+
+vector<int> discrete_step(int n){
+  switch (n){
+  case 0:
+    return {1,0,0};
+  case 1:
+    return {-1,0,0};
+  case 2:
+    return {0,1,0};
+  case 3:
+    return {0,-1,0};
+  case 4:
+    return {0,0,1};
+  case 5:
+    return {0,0,-1};
+  default:
+    return {0,0,0};
+  }
+}
+    
+      
+      
+      
+
+      
+
+  
+  
