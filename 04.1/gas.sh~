@@ -1,0 +1,17 @@
+#!/bin/bash
+
+N=gas
+
+cd ../MolecularDynamics_NVE
+
+./clean.sh
+
+cp config.fcc config.0
+cp input.$(N) input.dat
+
+./MolDyn_NVE.exe
+
+cp all_epot.dat ../04.1/equil_$(N)_epot.dat
+cp all_etot.dat ../04.1/equil_$(N)_etot.dat
+cp all_ekin.dat ../04.1/equil_$(N)_ekin.dat
+cp all_temp.dat ../04.1/equil_$(N)_temp.dat

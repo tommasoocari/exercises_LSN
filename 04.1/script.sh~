@@ -1,0 +1,18 @@
+#!/bin/bash
+
+cd ../MolecularDynamics_NVE
+
+./clean.sh
+
+cp config.fcc config.0
+cp input0.gas input.dat
+
+sed -i '10d' input.dat
+sed -i '9 a 3000' input.dat
+
+./MolDyn_NVE.exe
+
+cp all_epot.dat ../04.1/equilibrate_epot.dat
+cp all_etot.dat ../04.1/equilibrate_etot.dat
+cp all_ekin.dat ../04.1/equilibrate_ekin.dat
+cp all_temp.dat ../04.1/equilibrate_temp.dat

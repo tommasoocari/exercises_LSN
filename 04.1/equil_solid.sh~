@@ -1,0 +1,40 @@
+#!/bin/bash
+
+PHASE=liquid
+
+cd ../MolecularDynamics_NVE
+
+./clean.sh
+
+cp config.fcc config.0
+cp input.${PHASE} input.dat
+
+sed -i '1d' input.dat
+sed -i '1i2.0' input.dat
+
+sed -i '9d' input.dat
+sed -i '8 a 10' input.dat 
+
+./MolDyn_NVE.exe
+
+cp old.final old.0
+cp config.final config.0
+
+sed -i '6d' input.dat
+sed -i '5 a 1' input.dat
+
+sed -i '7d' input.dat
+sed -i '6 a 1' input.dat
+
+sed -i '8d' input.dat
+sed -i '7 a 1.1' input.dat 
+
+sed -i '9d' input.dat
+sed -i '8 a 50' input.dat 
+
+./MolDyn_NVE.exe
+
+cp all_epot.dat ../04.1/equil_${PHASE}_epot.dat
+cp all_etot.dat ../04.1/equil_${PHASE}_etot.dat
+cp all_ekin.dat ../04.1/equil_${PHASE}_ekin.dat
+cp all_temp.dat ../04.1/equil_${PHASE}_temp.dat
