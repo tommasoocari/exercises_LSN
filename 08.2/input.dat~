@@ -1,0 +1,9 @@
+1.0
+5.0
+300
+10000
+
+  ReadInput >> mass;
+  ReadInput >> delta;
+  ReadInput >> nblk;
+  ReadInput >> nstep;

@@ -1,0 +1,14 @@
+CC = g++
+CFLAGS = -Wall -O3 --std=c++11
+PRNG = ../Parallel_Random_Number_Generator/
+
+SA.exe : SA.o Variational_MC.o $(PRNG)random.o 
+	$(CC) $(PRNG)random.o Variational_MC.o SA.o -o SA.exe
+SA.o: SA.cpp SA.h
+	$(CC) -c SA.cpp -o SA.o $(CFLAGS)
+Variational_MC.o : Variational_MC.cpp Variational_MC.h
+	$(CC) -c Variational_MC.cpp -o Variational_MC.o $(CFLAGS)
+random.o : $(PRNG)random.cpp $(PRNG)random.h
+	$(CC) -c $(PRNG)random.cpp -o $(PRNG)random.o $(CFLAGS)
+clean :
+	rm *.o SA.exe

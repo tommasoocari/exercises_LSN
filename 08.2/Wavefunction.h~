@@ -1,0 +1,11 @@
+#ifndef __Wavefunction__
+#define __Wavefunction__
+
+#include <cmath>
+
+double Gauss(double x, double mu, double sigma);
+
+double Wavefunction(double x, double mu = 2.0, double sigma = 1.0);
+double Wavefunction_prime(double x, double mu = 2.0, double sigma = 1.0);
+double Wavefunction_second(double x, double mu = 2.0, double sigma = 1.0);
+#endif

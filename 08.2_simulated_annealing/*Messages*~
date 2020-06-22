@@ -1,0 +1,51 @@
+Loading 00debian-vars...done
+Loading /etc/emacs/site-start.d/50asymptote.el (source)...done
+Loading /etc/emacs/site-start.d/50cmake-data.el (source)...done
+Loading /etc/emacs/site-start.d/50dictionaries-common.el (source)...
+Loading debian-ispell...
+Loading /var/cache/dictionaries-common/emacsen-ispell-default.el (source)...done
+Loading debian-ispell...done
+Loading /var/cache/dictionaries-common/emacsen-ispell-dicts.el (source)...done
+Loading /etc/emacs/site-start.d/50dictionaries-common.el (source)...done
+Loading /etc/emacs/site-start.d/50git-core.el (source)...done
+Loading /etc/emacs/site-start.d/50texlive-lang-english.el (source)...done
+For information about GNU Emacs and the GNU system, type C-h C-a.
+Mark saved where search started
+Auto-saving...done
+Mark saved where search started
+Saving file /home/tommaso/Documents/Laboratorio_Simulazione_Numerica/exercises/08.2_simulated_annealing/Variational_MC.cpp...
+Wrote /home/tommaso/Documents/Laboratorio_Simulazione_Numerica/exercises/08.2_simulated_annealing/Variational_MC.cpp
+(No changes need to be saved)
+user-error: No resizable window below this one [5 times]
+Auto-saving...done
+Saving file /home/tommaso/Documents/Laboratorio_Simulazione_Numerica/exercises/08.2_simulated_annealing/Variational_MC.cpp...
+Wrote /home/tommaso/Documents/Laboratorio_Simulazione_Numerica/exercises/08.2_simulated_annealing/Variational_MC.cpp
+delete-backward-char: Text is read-only [2 times]
+Quit
+Mark set [2 times]
+Replaced 0 occurrences
+ESC <escape> is undefined [3 times]
+Mark set
+ESC M-RET is undefined
+ESC <escape> is undefined [9 times]
+ESC M-% is undefined
+Mark set
+Replaced 0 occurrences
+Auto-saving...done
+Mark set
+Replaced 4 occurrences
+Auto-saving...done
+Saving file /home/tommaso/Documents/Laboratorio_Simulazione_Numerica/exercises/08.2_simulated_annealing/Variational_MC.cpp...
+Wrote /home/tommaso/Documents/Laboratorio_Simulazione_Numerica/exercises/08.2_simulated_annealing/Variational_MC.cpp
+user-error: Minibuffer window is not active
+ESC <escape> is undefined [7 times]
+Mark set
+Replaced 1 occurrence
+Mark set
+Replaced 4 occurrences
+Auto-saving...done
+Mark set
+Replaced 4 occurrences
+ESC ESC <escape> is undefined
+ESC <escape> is undefined [4 times]
+C-M-x C-s is undefined

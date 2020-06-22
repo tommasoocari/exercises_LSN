@@ -1,0 +1,144 @@
+#include <iostream>
+#include <fstream>
+#include <cmath>
+#include <string>
+#include "SA.h"
+#include "Variational_MC.h"
+#include "../Parallel_Random_Number_Generator/random.h"
+#include <algorithm>
+#include <iomanip>
+#include <numeric>
+
+using namespace std;
+
+int main(){
+  Input();
+  Measure(0);
+
+  istep = 0;
+  
+  for(int iblk = 1; iblk < n_blocks + 1; iblk++)
+    {
+      accepted = 0.0;
+      attempted = 0.0;
+      beta =annealing_schedule[iblk-1][1];
+      n_steps_block = annealing_schedule[iblk-1][0];
+
+      for(int i = 0; i < n_steps_block; i++)
+	{
+	  Step(beta);
+	  istep++;
+	  Measure(istep);
+	}
+
+      End_Block(iblk);
+      
+    }
+}
+
+void Input(void)
+{
+  cout << endl << "Variational Monte Carlo" << endl;
+  cout << endl << "Simulated Annealing" << endl;
+  
+  //Read seed for random numbers
+  int p1, p2;
+  ifstream Primes("Primes");
+  Primes >> p1 >> p2 ;
+  Primes.close();
+
+  ifstream input("seed.in");
+  input >> seed[0] >> seed[1] >> seed[2] >> seed[3];
+  rnd.SetRandom(seed,p1,p2);
+  input.close();
+
+  //Read input for information
+  ifstream ReadInput;
+  ReadInput.open("input.dat");
+
+  ReadInput >> mu;
+  ReadInput >> sigma;
+
+  cout << endl << "Reading input from file input.dat" << endl;
+
+  cout << endl << "Initial mu: " << mu << endl;
+  cout << endl << "Initial sigma: " << sigma << endl;
+
+  ReadInput.close();
+
+  ReadInput.open("schedule.dat");
+
+  cout << endl << "Reading annealing schedule from file schedule.dat" << endl;
+
+  string appo;
+  double appo1, appo2;
+  n_steps = 0;
+
+  ReadInput >> appo >> appo;
+  
+  while(!ReadInput.eof())
+    {
+      ReadInput >> appo1 >> appo2;
+    annealing_schedule.push_back({appo1,appo2});
+      n_steps = n_steps + appo1; // update #steps
+    }
+ n_blocks = annealing_schedule.size();
+  
+ cout << endl << "Number of algorithm steps: " << n_steps << endl;
+ cout << "Number of blocks: " << n_blocks << endl;
+
+ cout << endl << "Annealing schedule" << endl;
+ cout << setw(24) << "Number of steps per block" << setw(24) << "beta" << endl;
+ for (auto i : annealing_schedule)
+   {
+     for(auto j : i) cout << setw(24) << j;
+     cout << endl;
+   }
+ cout << endl;
+}
+
+void Measure(int istep)
+{
+  double fitness;
+  ofstream Fit;
+
+  Fit.open("output.fitness.0",ios::app);
+
+  Fit << istep << " " << mu << " " << sigma << endl;
+
+  Fit.close();
+}
+
+void Step(double beta)
+{
+  double old_mu = mu, old_sigma = sigma;
+  double new_mu = mu, new_sigma = sigma;
+  double p;
+  double step = 0.1;
+
+  do{
+    if(rnd.Rannyu() < 0.5) new_mu = rnd.Gauss(old_mu, step);
+    else new_sigma = rnd.Gauss(old_sigma, step);
+  }while(new_mu < 0 or new_sigma < 0);
+  
+  p = exp (- beta * (Get_Energy(new_mu,new_sigma) - Get_Energy(old_mu,old_sigma)));
+  if(p > 1) p = 1;
+  attempted = attempted + 1;
+  //cout << p << endl;
+  if(rnd.Rannyu() < p) //metropolis acceptation
+    {
+      mu = new_mu;
+      sigma = new_sigma;
+      accepted = accepted + 1;
+    }
+
+  //for (auto i : path) cout << i << " "; cout << endl;
+  
+}
+
+void End_Block(int iblk)
+{
+  cout << "Block number " << iblk << endl;
+  cout << "Acceptance rate " << accepted/attempted << endl << endl;
+  cout << "----------------------------" << endl << endl;
+}

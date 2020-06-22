@@ -1,0 +1,14 @@
+CC = g++
+CFLAGS = -Wall -O3 --std=c++11
+PRNG = ../Parallel_Random_Number_Generator/
+
+Monte_Carlo_NVT.exe : Monte_Carlo_NVT.o $(PRNG)random.o Wavefunction.o
+	$(CC) $(PRNG)random.o Monte_Carlo_NVT.o Wavefunction.o -o Monte_Carlo_NVT.exe
+Monte_Carlo_NVT.o : Monte_Carlo_NVT.cpp
+	$(CC) -c Monte_Carlo_NVT.cpp -o Monte_Carlo_NVT.o $(CFLAGS)
+random.o : $(PRNG)random.cpp $(PRNG)random.h
+	$(CC) -c $(PRNG)random.cpp -o $(PRNG)random.o $(CFLAGS)
+Wavefunction.o : Wavefunction.cpp Wavefunction.h
+	$(CC) -c Wavefunction.cpp -o Wavefunction.o $(CFLAGS)
+clean :
+	rm *.o Monte_Carlo_NVT.exe
