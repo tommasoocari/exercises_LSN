@@ -1,0 +1,6 @@
+#!/bin/bash
+
+for i in $(ls)
+do
+    tac $i | tail +20000 | tac >> $i
+done
