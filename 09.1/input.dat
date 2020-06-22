@@ -1,0 +1,7 @@
+0.6
+0.05
+1000
+
+  ReadInput << probability_crossover;
+  ReadInput << probability_mutation;
+  ReadInput << n_steps;
