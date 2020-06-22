@@ -1,0 +1,10 @@
+#!/bin/bash
+
+cp 1s_uniform.dat input.dat
+cp 1s_distribution.cpp distribution.cpp
+
+*You need to recompile the program !!*
+
+make
+
+./main.exe

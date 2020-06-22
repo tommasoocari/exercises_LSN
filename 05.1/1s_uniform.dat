@@ -1,0 +1,35 @@
+10000000
+100
+100000
+
+1
+1
+1
+
+0
+1.25
+
+05.1_1s_u_points.csv
+05.1_1s_u_montecarlo.dat
+05.1_1s_u_acceptance.dat
+05.1_1s_u_montecarlo_results.csv
+05.1_1s_u_acceptance_results.csv
+
+
+  ReadInput >> N_throws;
+  ReadInput >> N_blocks;
+  ReadInput >> N_print;
+
+  ReadInput >> pos_input[0];
+  ReadInput >> pos_input[1];
+  ReadInput >> pos_input[2];
+
+  ReadInput >> type_T; //0->uniform 1->gaussian
+  ReadInput >> r_cutoff;
+ 
+  ReadInput >> namefile_points;
+  ReadInput >> namefile_data;
+  ReadInput >> namefile_data_acceptance;
+  ReadInput >> namefile_analysis;
+  ReadInput >> namefile_analysis_acceptance;
+
