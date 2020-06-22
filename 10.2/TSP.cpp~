@@ -1,0 +1,398 @@
+#include <iostream>
+#include <fstream>
+#include <cmath>
+#include <algorithm>
+#include <numeric>
+#include <vector>
+#include "../Parallel_Random_Number_Generator/random.h"
+#include "TSP.h"
+#include "mpi.h"
+
+using namespace std;
+
+int main(int argc, char * argv[]){
+
+  //Parallel initialize
+  MPI_Init(&argc,&argv);
+  MPI_Comm_size(MPI_COMM_WORLD, &size_par);
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank_par);
+  
+  Input();
+  Coordinates();
+  New_Population();
+  Measure(0);
+
+  for(int istep = 1; istep<=n_steps; istep++)
+    {
+      Next_Generation(probability_crossover,
+		      probability_mutation);
+      if(istep%100 == 0)
+	{
+	   cout << "(" << rank_par << ") " << "Number of steps: " << istep
+      	       << "/" << n_steps << "  fitness_min = "
+	       << population[0][n_genes] << endl;
+	 
+	}
+      if(istep%25 == 99) Migration();
+      Measure(istep);
+    }
+
+  Write_Best_Path();
+
+  MPI_Finalize();
+
+  return 0;
+}
+
+void Input(void)
+{
+  if(rank_par == 0)
+   {
+     cout << endl << "Travel Salesman Problem" << endl;
+     cout << endl << "Genetic Algorithm" << endl;
+   }
+  
+  //Read seed for random numbers
+  int p1, p2;
+  ifstream Primes("Primes");
+  for(int i = rank_par; i < size_par; i++)
+    Primes >> p1 >> p2 ;
+
+  cout << endl << "(" << rank_par << ") Primes: "
+       << p1 << " " << p2 << endl;
+  
+  Primes.close();
+  
+  ifstream input("seed.in");
+  input >> seed[0] >> seed[1] >> seed[2] >> seed[3];
+  rnd.SetRandom(seed,p1,p2);
+  input.close();
+
+  //Read input for information
+  ifstream ReadInput;
+  ReadInput.open("input.dat");
+  ReadInput >> probability_crossover;
+  ReadInput >> probability_mutation;
+  ReadInput >> n_steps;
+
+  if(rank_par == 0)
+    {
+      cout << endl << "Reading input from file input.dat" << endl;
+      
+      cout << endl << "Number of individuals: " << n_indiv << endl;
+      cout << endl << "Number of genes fo each individual: " << n_genes << endl;
+      
+      
+      cout << endl << "Probability of cross-over: "
+	   << probability_crossover * 100 << "%" << endl;  
+
+      cout << "Probability of mutation: "
+	   << probability_mutation * 100 << "%" << endl;
+      
+      cout << endl << "Number of algorithm steps: " << n_steps << endl; 
+    }
+  
+  ReadInput.close();
+}
+
+void Coordinates()
+{
+  //Read the coordinates of the cities
+  ifstream ReadCoordinates;
+  ReadCoordinates.open("input.coordinates");
+
+ if(rank_par == 0)
+    cout << endl << "Reading coordinates of the cities from the file input.coordinates" << endl;
+  
+  for(int i = 0; i < n_genes; i++)
+    {
+      double x, y;
+      ReadCoordinates >> x;
+      ReadCoordinates >> y;
+      coordinates.push_back({x,y});
+    }
+  
+  ReadCoordinates.close();
+}
+
+void New_Population()
+{
+  for(int i = 0; i < n_indiv; i++)
+    {
+      vector<double> random_indiv = Random_Indiv(n_genes);
+      population.push_back(random_indiv);
+    }
+
+  Normalize();
+
+}
+
+void Normalize()
+{
+  for(int i = 0; i < n_indiv; i++)
+    {
+      if(population[i][1] > population[i][n_genes-1])
+	reverse(population[i].begin()+1, population[i].end()-1);
+      population[i][n_genes] = Fitness(population[i]);
+    }
+
+  sort(population.begin(), population.end(), Compare_Indiv);
+}
+
+void Measure(int istep)
+{
+  vector<double> fitness;
+
+  for(int i = 0; i < n_indiv; i++)
+    fitness.push_back(population[i][n_genes]);
+
+  ofstream Ave, Min;
+
+  Ave.open("output.ave."+to_string(rank_par),ios::app);
+  Min.open("output.min."+to_string(rank_par),ios::app);
+  
+  Ave << istep << " "
+      << accumulate(fitness.begin(), fitness.end(), 0.0)/n_indiv << endl;
+
+  Min << istep << " " << *(min_element(fitness.begin(), fitness.end())) << endl;
+
+  Ave.close();
+  Min.close();
+}
+
+void Next_Generation(double probability_crossover,
+		     double probability_mutation)
+{
+  vector<vector<double>> new_population;
+
+  for(int i = 0; i < n_indiv / 2; i++)
+    {
+      int parent1, parent2;
+      vector<vector<double>> children;
+      
+      parent1 = Selection(2.0, rnd.Rannyu());
+      parent2 = Selection(2.0, rnd.Rannyu());
+
+      children = {population[parent1], population[parent2]};
+
+      if(rnd.Rannyu() < probability_crossover)
+	children = Cross_Over(parent1,parent2);
+
+      if(rnd.Rannyu() < probability_mutation)
+	{
+	  vector<int> random;
+	  random.push_back((int)rnd.Rannyu(1,n_genes));
+	  random.push_back((int)rnd.Rannyu(1,n_genes));
+
+	  sort(random.begin(), random.end());
+
+	  swap(children[0][random[0]],
+	       children[0][random[1]]); 
+	}
+
+      if(rnd.Rannyu() < probability_mutation)
+	{
+	  vector<int> random;
+	  random.push_back((int)rnd.Rannyu(1,n_genes));
+	  random.push_back((int)rnd.Rannyu(1,n_genes));
+
+	  sort(random.begin(), random.end());
+
+	  reverse(children[0].begin() + random[0],
+		  children[0].begin() + random[1]); 
+	}
+      
+      if(rnd.Rannyu() < probability_mutation)
+	{
+	  vector<int> random;
+	  random.push_back((int)rnd.Rannyu(1,n_genes));
+	  random.push_back((int)rnd.Rannyu(1,n_genes));
+	  random.push_back((int)rnd.Rannyu(1,n_genes));
+
+	  sort(random.begin(), random.end());
+
+	  rotate(children[0].begin() + random[0],
+		 children[0].begin() + random[1],
+		 children[0].begin() + random[2]); 
+	}
+
+      if(rnd.Rannyu() < probability_mutation)
+	{
+	  vector<int> random;
+	  random.push_back((int)rnd.Rannyu(1,n_genes));
+	  random.push_back((int)rnd.Rannyu(1,n_genes));
+
+	  sort(random.begin(), random.end());
+
+	  swap(children[1][random[0]],
+	       children[1][random[1]]); 
+	}
+
+      if(rnd.Rannyu() < probability_mutation)
+	{
+	  vector<int> random;
+	  random.push_back((int)rnd.Rannyu(1,n_genes));
+	  random.push_back((int)rnd.Rannyu(1,n_genes));
+
+	  sort(random.begin(), random.end());
+
+	  reverse(children[1].begin() + random[0],
+		  children[1].begin() + random[1]); 
+	}
+      
+      if(rnd.Rannyu() < probability_mutation)
+	{
+	  vector<int> random;
+	  random.push_back((int)rnd.Rannyu(1,n_genes));
+	  random.push_back((int)rnd.Rannyu(1,n_genes));
+	  random.push_back((int)rnd.Rannyu(1,n_genes));
+
+	  sort(random.begin(), random.end());
+
+	  rotate(children[1].begin() + random[0],
+		 children[1].begin() + random[1],
+		 children[1].begin() + random[2]);
+	}
+
+      new_population.push_back(children[0]);
+      new_population.push_back(children[1]);
+    }
+
+  population = new_population;
+
+  Normalize();
+
+}
+
+void Write_Best_Path()
+{
+  vector<double> best_path;
+  vector<vector<double>> best_coordinates;
+  ofstream Path;
+
+  Path.open("output.path."+to_string(rank_par));
+  best_path = population[0];
+
+  for(int i = 0; i < n_genes; i++)
+    Path << coordinates[(int)best_path[i]][0] << " "
+	 << coordinates[(int)best_path[i]][1] << endl;
+
+  Path << coordinates[(int)best_path[0]][0] << " "
+       << coordinates[(int)best_path[0]][1] << endl;
+
+  Path.close();
+
+  rnd.SaveSeed();
+  
+  cout << endl << " --------------------------------------" << endl;
+
+}
+
+vector<vector<double>> Cross_Over(int pos1, int pos2)
+{
+  vector<double> indiv1 = population[pos1];
+  vector<double> indiv2 = population[pos2];
+  vector<double> new_indiv1(indiv1);
+  vector<double> new_indiv2(indiv2);
+  
+  int pos_cut = (int)rnd.Rannyu(1,n_genes-1);
+  
+  int index = pos_cut;
+  for(int i = 0; i < n_genes; i++)
+    {
+      int appo = indiv2[i];
+      if(find(indiv1.begin(), indiv1.begin() + pos_cut, appo)
+	 == indiv1.begin()+ pos_cut)
+	{
+	  new_indiv1[index] = appo;
+	  index++;
+	}
+    }
+
+  index = pos_cut;
+  for(int i = 0; i < n_genes; i++)
+    {
+      int appo = indiv1[i];
+      if(find(indiv2.begin(), indiv2.begin() + pos_cut, appo)
+	 == indiv2.begin()+ pos_cut)
+	{
+	  new_indiv2[index] = appo;
+	  index++;
+	}
+    }
+
+  return {new_indiv1,new_indiv2};
+  
+}
+
+int Selection(double p, double r)
+{
+  return (int) (n_indiv * pow(r,p));
+}
+
+vector<double> Random_Indiv(int n_genes)
+{
+  vector<double> indiv;
+  indiv.push_back(0.0);
+
+  indiv.push_back(1 + rand() % (n_genes-1)); //random number beetween 1 and n_genes - 1
+  
+  while(indiv.size() != n_genes)
+    {
+      int random = 1 + rand() % (n_genes-1);
+      if(find(indiv.begin(), indiv.end(), random) == indiv.end())
+	{
+	  indiv.push_back(random);
+	}
+    }
+  indiv.push_back(0.0); //this will be replaced by the fitness !
+  return indiv;
+}
+
+double Distance(vector<double> v1, vector<double> v2)
+{
+  if(v1.size() != v2.size()) return 0;
+  double su2=0;
+  for(int i=0 ; i<v1.size(); i++) su2 = su2 + pow(v1[i] - v2[i],2);
+  return sqrt(su2); 
+}
+
+double Fitness(vector<double> indiv)
+{
+  double sum = 0.0;
+  
+  for(int i = 0; i < n_genes; i++)
+    {
+      sum = sum + Distance(coordinates[(int)indiv[i]],
+			   coordinates[(int)indiv[(i+1)%n_genes]]);
+    }
+  
+  return sum;
+}
+
+bool Compare_Indiv(vector<double> v1, vector<double> v2)
+{
+  return (*(v1.end()-1) < *(v2.end() - 1));
+}
+
+void Migration(void)
+{
+  double migrants[size_par][n_genes + 1];
+
+  for(int i = 0; i < size_par; i++)
+    {
+      for(int j = 0; j <= n_genes; j++)
+	migrants[i][j] = population[0][j];
+
+      MPI_Bcast(migrants[i],n_genes+1,MPI_DOUBLE,i,MPI_COMM_WORLD);
+    }
+
+  for(int i = 0; i < size_par; i++)
+    for(int j = 0; j <= n_genes; j++)
+      population[i][j] = migrants[i][j];
+      
+  Normalize();
+}
+
+
+

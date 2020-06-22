@@ -1,0 +1,5 @@
+32
+1000
+
+	ReadInput >> n_cities
+	ReadInput >> n_steps

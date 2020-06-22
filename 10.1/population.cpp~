@@ -1,0 +1,212 @@
+#include "population.h"
+#include <iostream>
+#include <cmath>
+#include <algorithm>
+#include <cstdlib>
+#include <time.h>
+
+using namespace std;
+
+
+Population::Population(int n_indiv, int n_genes) : m_indiv(n_indiv) , m_genes(n_genes)
+{
+  for(int i = 0; i < n_indiv; i++)
+    {
+      vector<double> v = RandomIndiv(n_genes);
+      m_population.push_back(v);
+    }
+
+  for(int i = 0; i < m_genes; i++)
+    {
+      m_coordinates.push_back({0.0,0.0});
+    }
+}
+
+void Population::Set_Coordinate(double coord, int n_gene, int n_coord)
+{
+  m_coordinates[n_gene][n_coord] = coord;
+}
+
+bool Compare_Indiv(vector<double> indiv1, vector<double> indiv2)
+{
+  return (*(indiv1.end() - 1) < *(indiv2.end() -1));
+}
+
+void Population::Update_Fitness_Sort()
+{
+  for(int i = 0; i < m_indiv; i++)
+    {
+      m_population[i][m_genes] = Fitness(m_population[i]);
+    }
+  
+  sort(m_population.begin(), m_population.end(), Compare_Indiv);
+  
+}
+
+void Population::Normalize()
+{
+  for(int i = 0; i < m_indiv; i++)
+    if(m_population[i][1] > m_population[i][m_genes - 1])
+      reverse(m_population[i].begin()+1, m_population[i].end()-1);
+}
+
+vector<double> Population::Get_Fitness()
+{
+  vector<double> fitness;
+  for(int i = 0; i < m_indiv; i++)
+    fitness.push_back(m_population[i][m_genes]);
+  return fitness;
+}
+
+double Distance(vector<double> v1, vector<double> v2)
+{
+  if(v1.size() != v2.size()) return 0;
+  double su2=0;
+  for(int i=0 ; i<v1.size(); i++) su2 = su2 + pow(v1[i] - v2[i],2);
+  return sqrt(su2);
+}
+
+double Population::Fitness(vector<double> indiv)
+{
+  double sum = 0.0;
+  
+  for(int i = 0; i < m_genes; i++)
+    {
+      sum = sum + Distance(m_coordinates[(int)indiv[i]],
+				  m_coordinates[(int)indiv[(i+1)%m_genes]]);
+    }
+
+  return sum;
+}
+
+vector<double> Population::RandomIndiv(int n_genes)
+{
+  vector<double> indiv;
+  indiv.push_back(0.0);
+
+  indiv.push_back(1 + rand() % (n_genes-1)); //random number beetween 1 and n_genes - 1
+  
+  while(indiv.size() != n_genes)
+    {
+      int random = 1 + rand() % (n_genes-1);
+      if(find(indiv.begin(), indiv.end(), random) == indiv.end())
+	{
+	  indiv.push_back(random);
+	}
+    }
+  indiv.push_back(0.0);
+  return indiv;
+}
+
+  
+int Population::Selection(double p, double r)
+{
+  return (int) (m_indiv * pow(r,p));
+}
+
+vector<vector<double>> Population::Cross_Over(int pos1, int pos2)
+{
+
+  vector<double> indiv1 = m_population[pos1];
+  vector<double> indiv2 = m_population[pos2];
+  vector<double> new_indiv1(indiv1);
+  vector<double> new_indiv2(indiv2);
+
+  int pos_cut = rand() % (m_genes - 1) + 1 ;
+  
+  int index = pos_cut;
+  for(int i = 0; i < m_genes; i++)
+    {
+      int appo = indiv2[i];
+      if(find(indiv1.begin(), indiv1.begin() + pos_cut, appo)
+	 == indiv1.begin()+ pos_cut)
+	{
+	  new_indiv1[index] = appo;
+	  index++;
+	}
+    }
+
+  index = pos_cut;
+  for(int i = 0; i < m_genes; i++)
+    {
+      int appo = indiv1[i];
+      if(find(indiv2.begin(), indiv2.begin() + pos_cut, appo)
+	 == indiv2.begin()+ pos_cut)
+	{
+	  new_indiv2[index] = appo;
+	  index++;
+	}
+    }
+
+  return {new_indiv1,new_indiv2};
+}
+
+void Population::Next_Generation(double probability_crossover,
+				 double probability_mutation)
+{
+
+  vector<vector<double>> new_population;
+
+  for(int i = 0; i < m_indiv / 2; i++)
+    {
+      int parent1, parent2;
+      vector<vector<double>> appo;
+      double appo2;
+      int gene1, gene2;
+      int length;
+
+      parent1 = Selection(3.0,(double)rand()/RAND_MAX);
+      parent2 = Selection(3.0,(double)rand()/RAND_MAX);
+
+      appo = {m_population[parent1], m_population[parent2]};
+      
+      if((double)rand()/RAND_MAX < probability_crossover)
+	{
+	  appo = Cross_Over(parent1,parent2);
+	}
+
+      if((double)rand()/RAND_MAX < probability_mutation)
+	{
+	  gene1 = 1 + rand() % (m_genes - 1);
+	  gene2 = 1 + rand() % (m_genes - 1);
+	  swap(appo[0][gene1], appo[0][gene2]);
+	}
+
+      if((double)rand()/RAND_MAX < probability_mutation)
+	{
+	  gene1 = 1 + rand() % (m_genes - 1);
+	  gene2 = 1 + rand() % (m_genes - 1);
+	  swap(appo[1][gene1], appo[1][gene2]);
+	}
+
+      if((double)rand()/RAND_MAX < probability_mutation)
+	{
+	  gene1 = 1 + rand() % (m_genes - 1);
+	  gene2 = 1 + rand() % (m_genes - 1);
+
+	  reverse(appo[0].begin() + gene1, appo[0].begin() + gene2);
+	}
+
+      if((double)rand()/RAND_MAX < probability_mutation)
+	{
+	  gene1 = 1 + rand() % (m_genes - 1);
+	  gene2 = 1 + rand() % (m_genes - 1);
+
+	  reverse(appo[1].begin() + gene1, appo[1].begin() + gene2);
+	}
+
+      if((double)rand()/RAND_MAX < probability_mutation)
+	{
+	  gene1 = 1 + rand() % (m_genes - 1);
+	  gene2 = 1 + rand() % (m_genes - 1);
+
+	  reverse(appo[0].begin() + gene1, appo[1].begin() + gene2);
+	}
+     
+      new_population.push_back(appo[0]);
+      new_population.push_back(appo[1]);
+    }
+
+  m_population = new_population;
+  
+}
