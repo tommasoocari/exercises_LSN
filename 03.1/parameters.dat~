@@ -1,0 +1,5 @@
+asset_price_initial 100
+delivery_time 1
+strike_price 100
+risk_free_interest_rate 0.1
+volatility 0.25
